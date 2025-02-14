@@ -23,8 +23,7 @@ use smallvec::SmallVec;
 pub struct BillboardTextBounds(pub TextBounds);
 
 // TODO: Maybe use something like { Single(Group), Multi(SmallVec<[Group; 1]>) }, benchmark it
-#[derive(Component, Clone, Debug, Deref, DerefMut, Default, Reflect)]
-#[reflect(Component)]
+#[derive(Component, Clone, Debug, Deref, DerefMut, Default)]
 pub struct BillboardTextHandles(pub SmallVec<[BillboardTextHandleGroup; 1]>);
 
 #[derive(Clone, Debug, Default, Reflect)]

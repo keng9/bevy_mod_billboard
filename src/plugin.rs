@@ -35,7 +35,7 @@ impl Plugin for BillboardPlugin {
             .register_type::<BillboardMesh>()
             .register_type::<BillboardTexture>()
             .register_type::<BillboardTextBounds>()
-            .register_type::<BillboardTextHandles>()
+            // .register_type::<BillboardTextHandles>()
             .add_systems(
                 PostUpdate,
                 (
