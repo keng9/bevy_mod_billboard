@@ -53,7 +53,7 @@ fn move_cube(
     mut direction: Local<bool>,
     time: Res<Time>,
 ) {
-    let mut parent_cube = parent_cube.single_mut();
+    let mut parent_cube = parent_cube.single_mut().unwrap();
 
     let direction_vec = if *direction { Vec3::Z } else { Vec3::NEG_Z };
 
@@ -62,6 +62,6 @@ fn move_cube(
 
     if *accumulated >= 2.0 {
         *direction = !*direction;
-        *accumulated = *accumulated - 2.0
+        *accumulated -= 2.0
     }
 }

@@ -26,7 +26,7 @@ fn setup_billboard(
 // Important bits are above, the code below is for camera, reference cube and rotation
 
 #[derive(Component)]
-#[require(Transform)]
+#[require(Transform, Visibility)]
 pub struct CameraHolder;
 
 fn setup_scene(
@@ -49,7 +49,7 @@ fn setup_scene(
 }
 
 fn rotate_camera(mut camera: Query<&mut Transform, With<CameraHolder>>, time: Res<Time>) {
-    let mut camera = camera.single_mut();
+    let mut camera = camera.single_mut().unwrap();
 
     camera.rotate_y(time.delta_secs());
 }

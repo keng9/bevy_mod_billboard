@@ -8,6 +8,7 @@ use bevy::ecs::system::{SystemParamItem, SystemState};
 use bevy::image::BevyDefault;
 use bevy::log::error;
 use bevy::math::Mat4;
+use bevy::platform::collections::HashMap;
 use bevy::prelude::{
     default, AssetEvent, Commands, Component, Entity, FromWorld, Image, Mesh, Msaa, Query, Res,
     ResMut, Resource, With, World,
@@ -36,7 +37,6 @@ use bevy::render::view::{
     ExtractedView, RenderVisibleEntities, ViewTarget, ViewUniform, ViewUniformOffset, ViewUniforms,
 };
 use bevy::sprite::SpriteAssetEvents;
-use bevy::utils;
 
 #[derive(Clone, Copy, ShaderType, Component)]
 pub struct BillboardUniform {
@@ -55,7 +55,7 @@ pub struct RenderBillboardImage {
 
 #[derive(Resource, Default)]
 pub struct BillboardImageBindGroups {
-    values: utils::HashMap<AssetId<Image>, BindGroup>,
+    values: HashMap<AssetId<Image>, BindGroup>,
 }
 
 #[derive(Resource)]
@@ -148,9 +148,9 @@ pub fn prepare_billboard_bind_group(
 }
 
 pub fn queue_billboard_texture(
-    mut views: Query<(Entity, &ExtractedView, &RenderVisibleEntities, &Msaa)>,
+    mut views: Query<(&ExtractedView, &RenderVisibleEntities, &Msaa)>,
     mut transparent_render_phases: ResMut<ViewSortedRenderPhases<Transparent3d>>,
-    mut pipeline_cache: ResMut<PipelineCache>,
+    pipeline_cache: Res<PipelineCache>,
     mut image_bind_groups: ResMut<BillboardImageBindGroups>,
     mut billboard_pipelines: ResMut<SpecializedMeshPipelines<BillboardPipeline>>,
     render_device: Res<RenderDevice>,
@@ -177,8 +177,9 @@ pub fn queue_billboard_texture(
         };
     }
 
-    for (view_entity, view, visible_entities, msaa) in &mut views {
-        let Some(transparent_phase) = transparent_render_phases.get_mut(&view_entity) else {
+    for (view, visible_entities, msaa) in &mut views {
+        let Some(transparent_phase) = transparent_render_phases.get_mut(&view.retained_view_entity)
+        else {
             continue;
         };
 
@@ -189,10 +190,11 @@ pub fn queue_billboard_texture(
 
         let rangefinder = view.rangefinder3d();
 
-        for visible_entity in visible_entities.iter::<With<Billboard>>() {
+        for visible_entity in visible_entities.iter::<Billboard>() {
             let Ok((uniform, mesh, image, billboard)) = billboards.get(visible_entity.0) else {
                 continue;
             };
+
             let Some(gpu_image) = gpu_images.get(image.id) else {
                 continue;
             };
@@ -206,10 +208,10 @@ pub fn queue_billboard_texture(
                 key |= BillboardPipelineKey::DEPTH;
             }
 
-            if billboard.lock_axis.map_or(false, |lock| lock.y_axis) {
+            if billboard.lock_axis.is_some_and(|lock| lock.y_axis) {
                 key |= BillboardPipelineKey::LOCK_Y;
             }
-            if billboard.lock_axis.map_or(false, |lock| lock.rotation) {
+            if billboard.lock_axis.is_some_and(|lock| lock.rotation) {
                 key |= BillboardPipelineKey::LOCK_ROTATION;
             }
 
@@ -218,7 +220,7 @@ pub fn queue_billboard_texture(
             }
 
             let pipeline_id = billboard_pipelines.specialize(
-                &mut pipeline_cache,
+                &pipeline_cache,
                 &billboard_pipeline,
                 key,
                 &gpu_mesh.layout,
@@ -256,8 +258,9 @@ pub fn queue_billboard_texture(
                 entity: *visible_entity,
                 draw_function: draw_transparent_billboard,
                 batch_range: 0..1,
-                extra_index: PhaseItemExtraIndex::NONE,
+                extra_index: PhaseItemExtraIndex::None,
                 distance,
+                indexed: true,
             });
         }
     }

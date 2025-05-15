@@ -13,8 +13,6 @@ use bevy::render::camera::CameraUpdateSystem;
 use bevy::render::extract_component::{ExtractComponentPlugin, UniformComponentPlugin};
 use bevy::render::render_phase::AddRenderCommand;
 use bevy::render::render_resource::SpecializedMeshPipelines;
-use bevy::render::view::check_visibility;
-use bevy::render::view::VisibilitySystems::CheckVisibility;
 use bevy::render::{RenderApp, RenderSet};
 use bevy::text::detect_text_needs_rerender;
 use bevy::{asset::load_internal_asset, core_pipeline::core_3d::Transparent3d, render::Render};
@@ -40,16 +38,13 @@ impl Plugin for BillboardPlugin {
                 PostUpdate,
                 (
                     (
-                        (
-                            detect_text_needs_rerender::<BillboardText>,
-                            detect_billboard_text_color_change,
-                        ),
-                        update_billboard_text_layout,
-                    )
-                        .chain()
-                        .ambiguous_with(CameraUpdateSystem),
-                    check_visibility::<With<Billboard>>.in_set(CheckVisibility),
-                ),
+                        detect_text_needs_rerender::<BillboardText>,
+                        detect_billboard_text_color_change,
+                    ),
+                    update_billboard_text_layout,
+                )
+                    .chain()
+                    .ambiguous_with(CameraUpdateSystem),
             );
     }
 

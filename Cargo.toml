@@ -19,11 +19,8 @@ exclude = [ "images", "assets" ]
 smallvec = "1.11.0"
 bitflags = "2.3"
 
-# see bevy #16563
-bevy_internal = { version = "0.15", features = ["bevy_image"] }
-
 [dependencies.bevy]
-version = "0.15"
+version = "0.16"
 default-features = false
 features = [
     "bevy_core_pipeline",
@@ -37,4 +34,4 @@ features = [
 ]
 
 [dev-dependencies]
-bevy = "0.15"
+bevy = "0.16"
