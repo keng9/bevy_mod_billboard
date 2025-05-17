@@ -152,7 +152,7 @@ pub(crate) fn update_billboard_text_layout(
                 &mut swash_cache,
             ) {
                 Err(TextError::NoSuchFont) => {
-                    error!("Missing font (could still be loading)");
+                    warn!("Missing font (could still be loading)");
                     queue.insert(entity);
                     continue;
                 }
